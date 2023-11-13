@@ -2,24 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: django
+  namespace: default
   labels:
-    app.kubernetes.io/name: django
-  name: django
+    app: django
+    release: prometheus
 spec:
   selector: 
     matchLabels:
-      app.kubernetes.io/name: django
+      app: django
   replicas: 1
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: django
+        app: django
     spec:  
       containers:
         - name: django 
           image: mrbghndevops/django:metrics
           ports:
-            - containerPort: 8000
+            - name: http
+              containerPort: 8000
           resources:
             limits:
               cpu: 500m
@@ -34,14 +36,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: django
+  namespace: default
   labels:
-    app.kubernetes.io/name: django
+    release: prometheus
 spec:
   selector:
-    app.kubernetes.io/name: django
+    app: django
   ports:
     - name: http
       protocol: TCP
-      port: 80
+      port: 8000
       targetPort: 8000
+      nodePort: 30000
   type: LoadBalancer
