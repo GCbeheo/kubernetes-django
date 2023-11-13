@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: django-monitor
+  namespace: default
+  labels: 
+    app: django
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      release: prometheus
+  endpoints:
+    - port: "8000"
+      interval: 5s
+      path: /metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - default
