@@ -5,7 +5,6 @@ metadata:
   namespace: default
   labels:
     app: django
-    release: prometheus
 spec:
   selector: 
     matchLabels:
@@ -38,7 +37,7 @@ metadata:
   name: django
   namespace: default
   labels:
-    release: prometheus
+    app: django
 spec:
   selector:
     app: django
