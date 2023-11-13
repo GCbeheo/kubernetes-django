@@ -4,12 +4,11 @@ metadata:
   name: django-monitor
   namespace: default
   labels: 
-    app: django
     release: prometheus
 spec:
   selector:
     matchLabels:
-      release: prometheus
+      app: django
   endpoints:
     - port: "8000"
       interval: 5s
