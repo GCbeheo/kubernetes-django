@@ -10,8 +10,8 @@ spec:
     matchLabels:
       app: django
   endpoints:
-    - port: "8000"
-      interval: 5s
+    - port: web
+      interval: 15s
       path: /metrics
       scheme: http
   namespaceSelector:

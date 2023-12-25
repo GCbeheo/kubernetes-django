@@ -1,0 +1,50 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    release: prometheus
+    role: alert-rules
+  name: django-alert
+spec:
+  groups:
+    - name: "django.rules"
+      rules:
+        - alert: HPAReachedMaxReplicas
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas{job="kube-state-metrics",namespace=~".*"} == kube_horizontalpodautoscaler_spec_max_replicas{job="kube-state-metrics",namespace=~".*"}
+          for: 5m
+          annotations:
+            summary: HPA named {{$labels.hpa}} in {{$labels.namespace}} namespace has reached scaling limited state
+            description: "\nCluster Name: {{$externalLabels.cluster}}\nNamespace: {{$labels.namespace}}\nHPA name: {{$labels.hpa}}\n"
+        - alert: ContainerRestarted
+          expr: |
+            rate(kube_pod_container_status_restarts_total{namespace="default", pod=~"django.*"}[5m]) > 0
+          for: 0m
+          annotations:
+            summary: Container named {{$labels.container}} in {{$labels.pod}} in {{$labels.namespace}} was restarted 
+            description: "\nCluster Name: {{$externalLabels.cluster}}\nNamespace: {{$labels.namespace}}\nPod name: {{$labels.pod}}\nContainer name: {{$labels.container}}\n" 
+        # - alert: PodOOMKilled
+        #   expr: |
+        #     kube_pod_container_status_last_terminated_reason{reason="OOMKilled", namespace="default"}
+        #   for: 0m
+        #   annotations:
+        #     summary: Container named {{$labels.container}} in {{$labels.pod}} in {{$labels.namespace}} was restarted 
+        #     description: "\nCluster Name: {{$externalLabels.cluster}}\nNamespace: {{$labels.namespace}}\nPod name: {{$labels.pod}}\nContainer name: {{$labels.container}}\n" 
+        - alert: PodHighCPUUsage
+          # expr: sum(rate(container_cpu_usage_seconds_total{container_name!="POD", namespace="default", pod=~"django.*"}[1m])) > 0.25
+          expr: sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="default", pod=~"django.*"}[1m])) / sum by (pod) (kube_pod_container_resource_limits{resource="cpu", namespace="default", pod=~"django.*"}) > 0.8
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            description: "Pod '{{ $labels.pod }}' in namespace '{{ $labels.namespace }}' is using CPU over 80% of the limit"
+            summary: "HIGH CPU USAGE WARNING for {{$labels.pod}}"
+        - alert: PodHighRAMUsage
+          # expr: sum(container_memory_working_set_bytes{container_name!="POD", namespace="default", pod=~"django.*"}) > 2.5e8
+          expr: sum by (pod) (container_memory_working_set_bytes{namespace="default", pod=~"django.*", image=~"registry.git.vmo.dev/c11/c11-private/devops/reactjs-devops-lab.*"}) / sum by (pod) (kube_pod_container_resource_limits{resource="memory", pod=~"django.*"}) > 0.8
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            description: "pod {{$labels.pod}} is using 80% memory limit"
+            summary: "HIGH Memory USAGE WARNING for {{$labels.pod}}"

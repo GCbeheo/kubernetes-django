@@ -8,17 +8,17 @@ spec:
     kind: Deployment
     name: django
   minReplicas: 1
-  maxReplicas: 10
+  maxReplicas: 5
   metrics:
   - type: Resource
     resource:
      name: cpu
      target:
        type: Utilization
-       averageUtilization: 70
+       averageUtilization: 80
   - type: Resource
     resource:  
      name: memory
      target:
-       type: AverageValue
-       averageValue: 400Mi 
+       type: Utilization
+       averageUtilization: 80

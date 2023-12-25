@@ -9,42 +9,30 @@ spec:
   selector: 
     matchLabels:
       app: django
-  replicas: 1
+  # replicas: 1
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
         app: django
     spec:  
       containers:
-        - name: django 
-          image: mrbghndevops/django:metrics
+        - name: django
+          image: registry.git.vmo.dev/c11/c11-private/devops/reactjs-devops-lab:296a4413
           ports:
             - name: http
               containerPort: 8000
           resources:
             limits:
+              # cpu: 1
+              # memory: 1Gi
               cpu: 500m
               memory: 500Mi
             requests:
-              cpu: 250m  
+              # cpu: 750m  
+              # memory: 750Mi
+              cpu: 250m
               memory: 250Mi
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: django
-  namespace: default
-  labels:
-    app: django
-spec:
-  selector:
-    app: django
-  ports:
-    - name: http
-      protocol: TCP
-      port: 8000
-      targetPort: 8000
-      nodePort: 30000
-  type: LoadBalancer
+      imagePullSecrets:
+        - name: registrypullsecret
