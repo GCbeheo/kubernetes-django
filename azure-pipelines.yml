@@ -1,0 +1,10 @@
+trigger:
+- main
+
+pool:
+  name: Azure test
+
+steps:
+- script: |
+    docker compose -f docker-compose.yaml up -d
+  displayName: 'docker compose'
